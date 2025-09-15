@@ -31,3 +31,16 @@ def bissecao(funcao, a, b, tol=1e-4):
         raiz = (a + b) / 2
 
     print(f"A raiz da equação é: {raiz}\nFunção da raiz: {funcao(raiz)}")
+
+
+def secante(f, a, b, tol=1e-6, max_iter=100):
+#Encontra a raiz, no intervalo [x0, x1], da equação definida 
+#em fParada: no máximo, max_iter, iteracões ou diferença entre
+#os limites do intervalo menor que tol.
+    for i in range(max_iter):
+        c = (a * f(b) - b * f(a)) / (f(b) - f(a))
+        if abs(f(c)) < tol:
+            return c
+        a = b
+        b = c
+    return None # Não converge
