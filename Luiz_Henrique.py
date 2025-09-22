@@ -59,3 +59,32 @@ def falsa_posicao(f, a, b, tol=1e-6, max_iter=100):
         else:
             a = c
     return None # não converge
+
+
+def bissecao_iter(f, a, b, tol=1e-6, max_iter=100):
+    if f(a) * f(b) >= 0:
+        print("Erro: f(a) e f(b) devem ter sinais opostos.")
+        return None
+
+    valores = np.zeros(max_iter)
+    for iteracao in range(max_iter):
+        c = (a + b) / 2
+        valores[iteracao] = c
+
+        if f(c) == 0:
+            print(f"Raiz exata encontrada em {c} na iteração {iteracao + 1}.")
+            return valores[:iteracao + 1]
+        
+        if abs(b - a) < tol:
+            print(f"Tolerância alcançada. Intervalo menor que {tol}.")
+            return valores[:iteracao + 1]
+
+        # Se f(a) e f(c) têm sinais opostos, a raiz está em [a, c].
+        if f(a) * f(c) < 0:
+            b = c
+        # Caso contrário, a raiz está em [c, b].
+        else:
+            a = c
+            
+    print(f"Aviso: Número máximo de iterações ({max_iter}) alcançado.")
+    return valores
