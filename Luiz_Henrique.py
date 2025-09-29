@@ -61,30 +61,80 @@ def falsa_posicao(f, a, b, tol=1e-6, max_iter=100):
     return None # não converge
 
 
-def bissecao_iter(f, a, b, tol=1e-6, max_iter=100):
-    if f(a) * f(b) >= 0:
-        print("Erro: f(a) e f(b) devem ter sinais opostos.")
-        return None
+"""
+Retorna todos os valores diretamente com a equação B0 + B1 * x. Porém, utilizando coeficientes é possível fazer um por um
+"""
+def ajuste_curva(x, y):
+    x = np.array(x)
+    y = np.array(y)
 
-    valores = np.zeros(max_iter)
-    for iteracao in range(max_iter):
-        c = (a + b) / 2
-        valores[iteracao] = c
+    soma_x = np.sum(x)
+    soma_y = np.sum(y)
+    soma_x2 = np.sum(x ** 2)
+    soma_xy = np.sum(x * y)
+    n = len(x)
 
-        if f(c) == 0:
-            print(f"Raiz exata encontrada em {c} na iteração {iteracao + 1}.")
-            return valores[:iteracao + 1]
-        
-        if abs(b - a) < tol:
-            print(f"Tolerância alcançada. Intervalo menor que {tol}.")
-            return valores[:iteracao + 1]
+    m = np.array([[n, soma_x], [soma_x, soma_x2]])
 
-        # Se f(a) e f(c) têm sinais opostos, a raiz está em [a, c].
-        if f(a) * f(c) < 0:
-            b = c
-        # Caso contrário, a raiz está em [c, b].
-        else:
-            a = c
-            
-    print(f"Aviso: Número máximo de iterações ({max_iter}) alcançado.")
-    return valores
+    v = np.array([soma_y, soma_xy])
+
+    coeficientes = np.linalg.solve(m, v)
+    b0, b1 = coeficientes
+    return b0 + b1 * x
+
+"""
+# Teste com arrays
+x = np.array([0.2, 2.7, 4.5, 5.9, 7.2])
+y = np.array([1.5, 1.8, 3.1, 2.6, 3.6])
+"""
+
+
+
+
+def qualidade_ajuste(x1, x2, y, x_1, x_2):
+    x1 = np.array(x1)
+    x2 = np.array(x2)
+    y = np.array(y)
+
+    n = len(x1)
+
+    soma_x1 = np.sum(x1)
+    soma_x2 = np.sum(x2)
+    soma_y = np.sum(y)
+    soma_x1x2 = np.sum(x1 * x2)
+    soma_x1y = np.sum(x1 * y)
+    soma_x2y = np.sum(x2 * y)
+    soma_x1_2 = np.sum(x1 ** 2)
+    soma_x2_2 = np.sum(x2 ** 2)
+
+    # Construção do sistema linear
+    matriz = np.array([
+        [n, soma_x1, soma_x2],
+        [soma_x1, soma_x1_2, soma_x1x2],
+        [soma_x2, soma_x1x2, soma_x2_2]
+    ])
+
+    vetor = np.array([soma_y, soma_x1y, soma_x2y])
+
+    # Resolvendo o sistema linear para encontrar os coeficientes
+    b0, b1, b2 = np.linalg.solve(matriz, vetor)
+
+    # Função de predição
+    def v(x1_val, x2_val):
+        return b0 + b1 * x1_val + b2 * x2_val
+
+    # Aplicar a função aos valores de entrada x_1 e x_2
+    y_estimado = v(x_1, x_2)
+
+    return y_estimado
+
+"""
+# Teste com arrays
+x1 = np.array([-3, -2, 0, 1, 3, 5])
+x2 = np.array([1, 2, 4, 5, 8, 9])
+y = np.array([13, 18, 22, 27, 36, 39])
+
+# Usar os próprios x1, x2 como entrada para prever os valores y
+resultado = qualidade_ajuste(x1, x2, y, x1, x2)
+print("Valores estimados de y:", resultado)
+"""
