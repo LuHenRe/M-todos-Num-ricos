@@ -230,3 +230,170 @@ def comparacao_ajustes_grafico(x_dados, y_dados, modelo1_coeffs, modelo2_coeffs,
     plt.grid(True)
     plt.legend()
     plt.show()
+
+
+def IntegracaoSimples(f, a, b):
+    return (f(a) + f(b)) / 2 * (b - a)
+
+
+def IntegracaoComposta(f, a, b, n):
+    resultado = 0
+    h = (b - a) / n
+    max = b - a
+    a, b, j = 0, 0, 0
+    while j < max:
+        b += h
+        resultado += (f(a) + f(b)) / 2 * h
+        j += h
+        a += h
+    return resultado
+
+
+def trapezio_simples (fa, fb, h):
+    I = h * (fa + fb) / 2 
+    return I
+
+
+def trapezio_composto(f, a, b, n):
+    '''
+    Calcula a integral f no intervalo [a, b] pela regra do trapézio.
+    n = 1, trapézio simples
+    '''
+    def trapezio_s (fa, fb, h):
+        I = h * (fa + fb) / 2 
+        return I
+    h = (b - a) / n
+    x_barra = np.zeros(n + 1)
+
+    i = 0
+    while i < n + 1:
+        x_barra[i] = a + i * h
+        i += 1
+
+    i = 0
+    I = 0
+    while i < n:
+        I += trapezio_s(f(x_barra[i]), f(x_barra[i+1]), h)
+        i += 1
+    return I
+
+
+import math
+
+def normal_cdf_manual(z):
+    """
+    Calcula a FDC Normal Padrão N(z) usando uma aproximação polinomial.
+    Em outras palavras, a função de distribuição de probabilidade.
+    """
+    
+    if z < 0:
+        return 1 - normal_cdf_manual(-z)
+
+    a1 = 0.319381530
+    a2 = -0.356563782
+    a3 = 1.781477937
+    a4 = -1.821255978
+    a5 = 1.330274429
+
+    t = 1 / (1 + 0.2316419 * z)
+    
+    Qz = (a1 * t + a2 * t**2 + a3 * t**3 + a4 * t**4 + a5 * t**5) * math.exp(-z**2 / 2) / math.sqrt(2 * math.pi)
+
+    return 1 - Qz
+
+
+def Interpolacao_Lagrange(x_pontos, y_pontos, x):
+    n = len(x_pontos)
+    total = 0.0
+    
+    for i in range(n):
+        # L_i(x)
+        Li = 1.0
+        for j in range(n):
+            if i != j:
+                Li *= (x - x_pontos[j]) / (x_pontos[i] - x_pontos[j])
+        total += y_pontos[i] * Li
+    
+    return total
+
+
+def Diferenca_Newton(x, y):
+    n = len(y)
+    table = np.zeros((n, n))
+    table[:,0] = y
+    
+    for j in range(1, n):
+        for i in range(n-j):
+            table[i][j] = table[i+1][j-1] - table[i][j-1]
+    
+    return table
+
+def Interpolacao_Newton(x_pontos, diff_table, x):
+    n = len(x_pontos)
+    result = diff_table[0][0]
+    produto_termo = 1.0
+    
+    for i in range(1, n):
+        produto_termo *= (x - x_pontos[i-1])
+        result += diff_table[0][i] * produto_termo
+    
+    return result
+
+
+def Polinomio_Lagrange(xa, ya, x=np.linspace(0, 5, 100)):
+
+    x0, x1, x2 = xa
+    y0, y1, y2 = ya
+
+    L2 = (y0 * ((x - x1)/(x0 - x1) * (x - x2)/(x0 - x2)) + 
+          y1 * ((x - x0)/(x1 - x0) * (x - x2)/(x1 - x2)) + 
+          y2 * ((x - x0)/(x2 - x0) * (x - x1)/(x2 - x1)))
+    
+    return L2
+
+
+def Polinomio_Newton(x, y):
+    x0, x1, x2 = x
+    y0, y1, y2 = y
+
+    fx01 = (y1 - y0) / (x1 - x0)
+    fx12 = (y2 - y1) / (x2 - x1)
+    fx012 = (fx12 - fx01) / (x2 - x0)
+
+    a = fx012
+
+    b = fx01 - fx012*(x0 + x1)
+
+    c = y0 - fx01*x0 + fx012*(x0*x1)
+
+    return f"{a}x² + {b}x + {c}"
+
+
+def diferencas_finitas(y):
+    Dy = np.zeros(5)
+    Dy2 = np.zeros(4)
+    Dy3 = np.zeros(3)
+    Dy4 = np.zeros(2)
+    Dy5 = np.zeros(1)
+
+    for i in range(5):
+        Dy[i] = y[i+1] - y[i]
+
+    for i in range(4):
+        Dy2[i] = Dy[i+1] - Dy[i]
+
+    for i in range(3):
+        Dy3[i] = Dy2[i+1] - Dy2[i]
+
+    for i in range(2):
+        Dy4[i] = Dy3[i+1] - Dy3[i]
+    Dy5[0] = Dy4[1] - Dy4[0]
+
+
+def diferencas(y):
+    tabela = [y.copy()]
+    while len(tabela[-1]) > 1:
+        coluna = tabela[-1]
+        nova_coluna = np.diff(coluna)
+        tabela.append(nova_coluna)
+    return tabela
