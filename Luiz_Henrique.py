@@ -272,3 +272,281 @@ def comparacao_ajustes_grafico(x_dados, y_dados, modelo1_coeffs, modelo2_coeffs,
     plt.grid(True)
     plt.legend()
     plt.show()
+
+
+
+def IntegracaoSimples(f, a, b):
+    return (f(a) + f(b)) / 2 * (b - a)
+
+# a = limite inferior
+# b = limite superior
+def IntegracaoComposta(f, a, b, n):
+    resultado = 0
+    h = (b - a) / n
+    max = b - a
+    a, b, j = 0, 0, 0
+    while j < max:
+        b += h
+        resultado += (f(a) + f(b)) / 2 * h
+        j += h
+        a += h
+    return resultado
+
+
+# Trapézio simples (n=1)
+def trapezio_simples (fa, fb, h):
+    I = h * (fa + fb) / 2 
+    return I
+
+
+def trapezio_composto(f, a, b, n):
+    '''
+    Calcula a integral f no intervalo [a, b] pela regra do trapézio.
+    n = 1, trapézio simples
+    '''
+    def trapezio_s (fa, fb, h):
+        I = h * (fa + fb) / 2 
+        return I
+    h = (b - a) / n
+    x_barra = np.zeros(n + 1)
+
+    i = 0
+    while i < n + 1:
+        x_barra[i] = a + i * h
+        i += 1
+
+    i = 0
+    I = 0
+    while i < n:
+        I += trapezio_s(f(x_barra[i]), f(x_barra[i+1]), h)
+        i += 1
+    return I
+
+
+
+import math
+
+def normal_cdf_manual(z):
+    """
+    Calcula a FDC Normal Padrão N(z) usando uma aproximação polinomial.
+    Baseado em Abramowitz e Stegun (1964), Fórmula 7.1.26.
+    """
+    
+    # A aproximação funciona melhor para z >= 0, 
+    # então usamos a simetria N(-z) = 1 - N(z)
+    if z < 0:
+        return 1 - normal_cdf_manual(-z)
+
+    # Coeficientes da aproximação
+    a1 = 0.319381530
+    a2 = -0.356563782
+    a3 = 1.781477937
+    a4 = -1.821255978
+    a5 = 1.330274429
+
+    # Termo auxiliar t = 1 / (1 + 0.2316419 * z)
+    t = 1 / (1 + 0.2316419 * z)
+    
+    # O cálculo principal da aproximação Q(z) = 1 - N(z)
+    Qz = (a1 * t + a2 * t**2 + a3 * t**3 + a4 * t**4 + a5 * t**5) * math.exp(-z**2 / 2) / math.sqrt(2 * math.pi)
+
+    # Retorna N(z) = 1 - Q(z)
+    return 1 - Qz
+
+# --- Testando a implementação manual ---
+'''
+print(f"N(0.0) manual: {normal_cdf_manual(0.0):.4f}")
+print(f"N(1.0) manual: {normal_cdf_manual(1.0):.4f}")
+print(f"N(-1.96) manual: {normal_cdf_manual(-1.96):.4f}")]
+'''
+
+
+def Interpolacao_Lagrange(x_pontos, y_pontos, x):
+    n = len(x_pontos)
+    total = 0.0
+    
+    for i in range(n):
+        # L_i(x)
+        Li = 1.0
+        for j in range(n):
+            if i != j:
+                Li *= (x - x_pontos[j]) / (x_pontos[i] - x_pontos[j])
+        total += y_pontos[i] * Li
+    
+    return total
+
+# Exemplo de uso
+'''
+x = np.array([2, 2.2, 2.4, 2.5, 2.7, 2.9])
+y = np.array([5.6569, 7.1789, 8.9234, 9.8821, 11.9787, 14.3217])
+
+print(Interpolacao_Lagrange(x, y, 2.3))'''
+
+
+
+
+def Diferenca_Newton(x, y):
+    n = len(y)
+    table = np.zeros((n, n))
+    table[:,0] = y  # primeira coluna = y
+    
+    for j in range(1, n):
+        for i in range(n-j):
+            table[i][j] = table[i+1][j-1] - table[i][j-1]
+    
+    return table
+
+def Interpolacao_Newton(x_pontos, diff_table, x):
+    n = len(x_pontos)
+    result = diff_table[0][0]
+    produto_termo = 1.0
+    
+    for i in range(1, n):
+        produto_termo *= (x - x_pontos[i-1])
+        result += diff_table[0][i] * produto_termo
+    
+    return result
+
+# Exemplo de uso
+'''
+x = np.array([2, 2.2, 2.4, 2.5, 2.7, 2.9])
+y = np.array([5.6569, 7.1789, 8.9234, 9.8821, 11.9787, 14.3217])
+
+# criar tabela de diferenças
+diff_table = Diferenca_Newton(x, y)
+
+# interpolar ponto
+print(Interpolacao_Newton(x, diff_table, 2.3))
+'''
+
+
+def Polinomio_Lagrange(xa, ya, x=np.linspace(0, 5, 100)):
+
+    x0, x1, x2 = xa
+    y0, y1, y2 = ya
+
+    L2 = (y0 * ((x - x1)/(x0 - x1) * (x - x2)/(x0 - x2)) + 
+          y1 * ((x - x0)/(x1 - x0) * (x - x2)/(x1 - x2)) + 
+          y2 * ((x - x0)/(x2 - x0) * (x - x1)/(x2 - x1)))
+    
+    return L2
+
+'''
+xa = np.array([0.1, 0.6, 1.1])
+ya = np.array([1.221, 3.320, 4.310])
+
+x = np.linspace(0, 5, 100)
+'''
+
+
+import numpy as np
+
+def PolinomioNewton(x, y):
+    x0, x1, x2 = x
+    y0, y1, y2 = y
+
+    # Diferenças divididas
+    fx01 = (y1 - y0) / (x1 - x0)
+    fx12 = (y2 - y1) / (x2 - x1)
+    fx012 = (fx12 - fx01) / (x2 - x0)
+
+    # Construindo o polinômio expandido:
+    # P(x) = y0 + fx01*(x - x0) + fx012*(x - x0)*(x - x1)
+    # Vamos expandir isso para ax² + bx + c
+
+    # Expansão do termo quadrático
+    a = fx012
+
+    # Expansão do termo linear
+    b = fx01 - fx012*(x0 + x1)
+
+    # Termo constante
+    c = y0 - fx01*x0 + fx012*(x0*x1)
+
+    return f"{a}x² + {b}x + {c}"
+
+
+def diferencas_finitas(y):
+    Dy = np.zeros(5)
+    Dy2 = np.zeros(4)
+    Dy3 = np.zeros(3)
+    Dy4 = np.zeros(2)
+    Dy5 = np.zeros(1)
+
+    for i in range(5):
+        Dy[i] = y[i+1] - y[i]
+
+    for i in range(4):
+        Dy2[i] = Dy[i+1] - Dy[i]
+
+    for i in range(3):
+        Dy3[i] = Dy2[i+1] - Dy2[i]
+
+    for i in range(2):
+        Dy4[i] = Dy3[i+1] - Dy3[i]
+    Dy5[0] = Dy4[1] - Dy4[0]
+
+
+def diferencas(y):
+    tabela = [y.copy()]
+    while len(tabela[-1]) > 1:
+        coluna = tabela[-1]
+        nova_coluna = np.diff(coluna)
+        tabela.append(nova_coluna)
+    return tabela
+
+# Exemplo
+'''
+y = np.array([5.6569, 7.1789, 8.9234, 9.8821, 11.9787, 14.3217])
+
+tabela = diferencas(y)
+
+for i, col in enumerate(tabela):
+    print(f"Δ^{i} y = {col}")
+'''
+
+
+
+
+
+
+
+
+
+
+
+#1) A)
+
+   # Matematicamente, AMBOS geram EXATAMENTE O MESMO polinômio e o mesmo valor.
+   # O Teorema da Unicidade garante que só existe um polinômio interpolador.
+   # O gráfico e a estimativa serão idênticos nos dois métodos.
+
+#2. DIFERENÇA PRÁTICA:
+   
+   #Lagrange
+   #- Vantagem: Fórmula fechada e simétrica. Fácil de programar "bruto".
+   #- Desvantagem: Se você precisar adicionar um novo ponto (n aumenta),
+   #  precisa jogar tudo fora e recalcular do zero.
+
+   #Newton
+ # - Vantagem: Método incremental (construção em camadas).
+ # Se adicionar um ponto, você aproveita o cálculo anterior.
+ #  Gera a "Tabela de Diferenças Divididas".
+  
+
+#em questão de tempo , a melhor escolha seria o polinomio de newton , porque ele tem a 
+# flexibilidade de adicionar um ponto sem ter que fazer o calculo do inico;
+#e tambem ele faz a tabela de difirenças divididas com os coeficientes de b0 , b1 e etc...
+
+
+
+
+#2 - C)
+  # podemos dizer que nos resultado do 2A tinhamos varios pontos , automaticamente o tamanho da pista
+  #  sera maior , quanto que no resultado  2B  foi analisado com apenas 3 pontos
+
+  # automaticamente p em 84 a pista sera menor . O carro na pista com o comprimento maior(questão2A)
+  #  devera ter a velocida maior para alcançar o fim da pista em 84 segundos, enquanto o comprimento 
+
+  # com 3 pontos(2B) o carro vai ter uma velocidade menor comparada ao comprimento da questão 2A para
+  #  percorrer a pista em 84 segundo.
